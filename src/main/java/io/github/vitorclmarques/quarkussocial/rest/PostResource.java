@@ -13,7 +13,9 @@ import io.github.vitorclmarques.quarkussocial.domain.repository.UserRepository;
 import io.github.vitorclmarques.quarkussocial.rest.dto.CreatePostRequest;
 import io.github.vitorclmarques.quarkussocial.rest.dto.PostResponse;
 
+
 import io.quarkus.panache.common.Sort;
+
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
@@ -24,7 +26,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import lombok.var;
+
 
 @Path("/users/{userId}/posts")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -83,3 +85,4 @@ public class PostResource {
     }
         
 }
+ 
