@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import io.github.vitorclmarques.quarkussocial.domain.model.Post;
 import io.github.vitorclmarques.quarkussocial.domain.model.User;
+import io.github.vitorclmarques.quarkussocial.domain.repository.FollowerRepository;
 import io.github.vitorclmarques.quarkussocial.domain.repository.PostRepository;
 import io.github.vitorclmarques.quarkussocial.domain.repository.UserRepository;
 import io.github.vitorclmarques.quarkussocial.rest.dto.CreatePostRequest;
@@ -20,6 +21,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -35,12 +37,15 @@ public class PostResource {
     
     private UserRepository userRepository;
     private PostRepository repository;
+    private FollowerRepository followerRepository;
 
     @Inject
     public PostResource(UserRepository userRepository,
-     PostRepository repository){
+     PostRepository repository,
+     FollowerRepository followerRepository){
         this.userRepository = userRepository;
         this.repository = repository;
+        this.followerRepository = followerRepository;
     }
 
 
@@ -63,25 +68,47 @@ public class PostResource {
     }
     
     @GET
-    public Response listPost(@PathParam("userId") Long userId){
+     public Response listPosts(
+            @PathParam("userId") Long userId,
+            @HeaderParam("followerId") Long followerId ){
         User user = userRepository.findById(userId);
-
         if(user == null){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        var query = repository.find("user",Sort.by("dateTime", Sort.Direction.Descending), user);
+
+        if(followerId == null){
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("You forgot the header followerId")
+                    .build();
+        }
+
+        User follower = userRepository.findById(followerId);
+
+        if(follower == null){
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("Inexistent followerId")
+                    .build();
+        }
+
+        boolean follows = followerRepository.follows(follower, user);
+        if(!follows){
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("You can't see these posts")
+                    .build();
+        }
+
+        var query = repository.find(
+                "user", Sort.by("dateTime", Sort.Direction.Descending) , user);
         var list = query.list();
 
         var postResponseList = list.stream()
-        // .map(post -> PostResponse.fromEntity(post))
-        .map( PostResponse::fromEntity)
-        .collect(Collectors.toList());
-
+//                .map(post -> PostResponse.fromEntity(post))
+                .map(PostResponse::fromEntity)
+                .collect(Collectors.toList());
 
         return Response.ok(postResponseList).build();
-        
-        
-        
     }
         
 }
