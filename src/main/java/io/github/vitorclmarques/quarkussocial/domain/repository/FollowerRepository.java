@@ -1,7 +1,6 @@
 package io.github.vitorclmarques.quarkussocial.domain.repository;
 
-import java.util.HashMap;
-import java.util.Map;
+
 import java.util.Optional;
 import java.util.List;
 
